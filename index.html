@@ -1,0 +1,3444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>FPV STRIKE — 3D Drone Game</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#05070a;
+  color:#fff;
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* ================= MENU ================= */
+
+#menu{
+  position:fixed;
+  inset:0;
+  z-index:50;
+  background:
+    radial-gradient(circle at 70% 30%,rgba(0,180,255,.12),transparent 35%),
+    linear-gradient(135deg,#05080c,#0b1118 55%,#050608);
+  overflow:hidden;
+}
+
+#menu:before{
+  content:"";
+  position:absolute;
+  inset:0;
+  opacity:.15;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:40px 40px;
+  transform:perspective(500px) rotateX(55deg) scale(1.5);
+  transform-origin:center bottom;
+}
+
+.menuTop{
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:80px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 35px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background:rgba(0,0,0,.25);
+  backdrop-filter:blur(10px);
+}
+
+.logo{
+  font-size:25px;
+  font-weight:900;
+  letter-spacing:5px;
+}
+
+.logo span{
+  color:#00d9ff;
+}
+
+.money{
+  display:flex;
+  gap:20px;
+  font-weight:bold;
+}
+
+.money div{
+  padding:10px 15px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+}
+
+.menuCenter{
+  position:absolute;
+  left:7%;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:2;
+  max-width:600px;
+}
+
+.smallTitle{
+  color:#00d9ff;
+  letter-spacing:7px;
+  font-size:13px;
+  margin-bottom:15px;
+}
+
+h1{
+  font-size:clamp(45px,8vw,100px);
+  line-height:.9;
+  letter-spacing:-4px;
+  font-weight:1000;
+}
+
+.subtitle{
+  color:#8b9aa8;
+  margin-top:25px;
+  font-size:17px;
+  line-height:1.6;
+}
+
+.menuButtons{
+  margin-top:35px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.btn{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  padding:16px 25px;
+  min-width:180px;
+  border-radius:7px;
+  font-weight:800;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn:hover{
+  background:rgba(0,217,255,.15);
+  border-color:#00d9ff;
+  transform:translateY(-2px);
+}
+
+.btn.primary{
+  background:#00a9cc;
+  border-color:#00d9ff;
+  color:#001018;
+}
+
+.btn.primary:hover{
+  background:#00d9ff;
+}
+
+.menuInfo{
+  position:absolute;
+  bottom:30px;
+  left:35px;
+  color:#667582;
+  font-size:12px;
+  letter-spacing:1px;
+}
+
+/* ================= PANELS ================= */
+
+.panel{
+  position:fixed;
+  inset:0;
+  z-index:60;
+  background:rgba(3,6,9,.94);
+  backdrop-filter:blur(15px);
+  padding:35px;
+  overflow:auto;
+}
+
+.panelHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+}
+
+.panelTitle{
+  font-size:35px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+.close{
+  width:45px;
+  height:45px;
+  border-radius:50%;
+  background:#121a21;
+  border:1px solid #26333d;
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
+}
+
+.droneGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:18px;
+}
+
+.droneCard{
+  min-height:280px;
+  padding:25px;
+  background:linear-gradient(145deg,#111a22,#080d12);
+  border:1px solid #202e38;
+  border-radius:15px;
+  position:relative;
+  overflow:hidden;
+}
+
+.droneVisual{
+  height:120px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:65px;
+  filter:drop-shadow(0 0 20px rgba(0,217,255,.3));
+}
+
+.droneCard h3{
+  font-size:20px;
+  margin-bottom:10px;
+}
+
+.stat{
+  margin:8px 0;
+}
+
+.statLine{
+  height:5px;
+  background:#18232b;
+  border-radius:5px;
+  overflow:hidden;
+  margin-top:5px;
+}
+
+.statLine i{
+  display:block;
+  height:100%;
+  background:#00c8ec;
+}
+
+.buy{
+  margin-top:15px;
+  width:100%;
+  padding:12px;
+  border:0;
+  border-radius:6px;
+  background:#00a9cc;
+  color:#001018;
+  font-weight:900;
+  cursor:pointer;
+}
+
+/* ================= GAME UI ================= */
+
+#gameUI{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  pointer-events:none;
+}
+
+.topHUD{
+  position:absolute;
+  top:20px;
+  left:20px;
+  right:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+.hudBox{
+  background:rgba(3,8,12,.68);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(8px);
+  padding:12px 15px;
+  min-width:170px;
+  border-radius:8px;
+}
+
+.hudLabel{
+  color:#71808b;
+  font-size:10px;
+  letter-spacing:2px;
+}
+
+.hudValue{
+  margin-top:5px;
+  font-size:20px;
+  font-weight:900;
+}
+
+.centerHUD{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:150px;
+  height:150px;
+}
+
+.crosshair{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:25px;
+  height:25px;
+  transform:translate(-50%,-50%);
+}
+
+.crosshair:before,
+.crosshair:after{
+  content:"";
+  position:absolute;
+  background:#00eaff;
+  box-shadow:0 0 8px #00eaff;
+}
+
+.crosshair:before{
+  width:2px;
+  height:25px;
+  left:12px;
+}
+
+.crosshair:after{
+  width:25px;
+  height:2px;
+  top:12px;
+}
+
+.crossRing{
+  position:absolute;
+  inset:25px;
+  border:1px solid rgba(0,220,255,.4);
+  border-radius:50%;
+}
+
+.bottomHUD{
+  position:absolute;
+  bottom:20px;
+  left:20px;
+  right:20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:end;
+}
+
+.barBox{
+  width:230px;
+}
+
+.barName{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:#9baab4;
+  margin-bottom:6px;
+}
+
+.bar{
+  height:8px;
+  background:#101a20;
+  border:1px solid rgba(255,255,255,.08);
+  overflow:hidden;
+  border-radius:5px;
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  width:100%;
+  background:#00d9ff;
+  transition:.15s;
+}
+
+.bar.warning i{
+  background:#ffb300;
+}
+
+.bar.danger i{
+  background:#ff3d3d;
+}
+
+.speed{
+  text-align:center;
+  font-weight:900;
+}
+
+.speed strong{
+  font-size:35px;
+}
+
+.speed small{
+  display:block;
+  color:#65747d;
+}
+
+.rightHUD{
+  text-align:right;
+}
+
+.mission{
+  position:absolute;
+  top:100px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:12px 22px;
+  background:rgba(0,0,0,.5);
+  border:1px solid rgba(0,217,255,.2);
+  border-radius:6px;
+  text-align:center;
+}
+
+.missionTitle{
+  color:#00d9ff;
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+.missionText{
+  margin-top:5px;
+  font-weight:bold;
+}
+
+/* ================= MOBILE ================= */
+
+.mobileControls{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.stick{
+  position:absolute;
+  bottom:35px;
+  width:135px;
+  height:135px;
+  border:2px solid rgba(255,255,255,.18);
+  border-radius:50%;
+  background:rgba(0,0,0,.18);
+  pointer-events:auto;
+}
+
+.stick.left{
+  left:25px;
+}
+
+.stick.right{
+  right:25px;
+}
+
+.knob{
+  position:absolute;
+  width:55px;
+  height:55px;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:rgba(0,217,255,.45);
+  border:1px solid rgba(255,255,255,.4);
+}
+
+.mobileButton{
+  position:absolute;
+  pointer-events:auto;
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.25);
+  color:white;
+  font-weight:bold;
+}
+
+#boostBtn{
+  right:190px;
+  bottom:50px;
+}
+
+#actionBtn{
+  right:190px;
+  bottom:125px;
+}
+
+#exitBtn{
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:10px 20px;
+  background:rgba(0,0,0,.6);
+  color:white;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:5px;
+  pointer-events:auto;
+}
+
+/* ================= DAMAGE ================= */
+
+#damage{
+  position:fixed;
+  inset:0;
+  z-index:8;
+  pointer-events:none;
+  background:radial-gradient(circle,transparent 35%,rgba(255,0,0,.7));
+  opacity:0;
+}
+
+#hitFlash{
+  position:fixed;
+  inset:0;
+  background:white;
+  opacity:0;
+  z-index:30;
+  pointer-events:none;
+}
+
+#warning{
+  position:absolute;
+  top:43%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:#ff4040;
+  font-size:25px;
+  font-weight:900;
+  letter-spacing:4px;
+  opacity:0;
+}
+
+#pause{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(10px);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+
+#pause h2{
+  font-size:50px;
+  margin-bottom:25px;
+}
+
+/* ================= MOBILE RESPONSIVE ================= */
+
+@media(max-width:700px){
+
+  .menuTop{
+    padding:0 15px;
+    height:60px;
+  }
+
+  .money{
+    gap:5px;
+  }
+
+  .money div{
+    padding:7px;
+    font-size:11px;
+  }
+
+  .menuCenter{
+    left:20px;
+    right:20px;
+    top:45%;
+  }
+
+  h1{
+    font-size:52px;
+  }
+
+  .subtitle{
+    font-size:14px;
+  }
+
+  .menuButtons{
+    flex-direction:column;
+  }
+
+  .btn{
+    width:100%;
+  }
+
+  .bottomHUD{
+    bottom:190px;
+  }
+
+  .barBox{
+    width:120px;
+  }
+
+  .hudBox{
+    min-width:100px;
+    padding:8px;
+  }
+
+  .hudValue{
+    font-size:15px;
+  }
+
+  .rightHUD{
+    display:none;
+  }
+
+  .mission{
+    top:80px;
+    width:80%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= MENU ================= -->
+
+<div id="menu">
+
+  <div class="menuTop">
+    <div class="logo">FPV<span>STRIKE</span></div>
+
+    <div class="money">
+      <div>💰 <span id="menuMoney">2500</span></div>
+      <div>⭐ LVL <span id="menuLevel">1</span></div>
+    </div>
+  </div>
+
+  <div class="menuCenter">
+
+    <div class="smallTitle">TACTICAL 3D DRONE SIMULATION</div>
+
+    <h1>FPV<br>STRIKE</h1>
+
+    <div class="subtitle">
+      Аркадная 3D-игра про быстрый FPV-дрон.
+      Управляй дроном, проходи маршруты, выполняй задания,
+      избегай препятствий и прокачивай свою машину.
+    </div>
+
+    <div class="menuButtons">
+      <button class="btn primary" onclick="startGame()">
+        ▶ НАЧАТЬ МИССИЮ
+      </button>
+
+      <button class="btn" onclick="openGarage()">
+        🚁 ГАРАЖ
+      </button>
+
+      <button class="btn" onclick="openSettings()">
+        ⚙ НАСТРОЙКИ
+      </button>
+    </div>
+
+  </div>
+
+  <div class="menuInfo">
+    WASD / СТИК — ПОЛЁТ • MOUSE — ОБЗОР • SHIFT — УСКОРЕНИЕ • SPACE — ДЕЙСТВИЕ
+  </div>
+</div>
+
+<!-- ================= GARAGE ================= -->
+
+<div id="garage" class="panel hidden">
+
+  <div class="panelHeader">
+    <div class="panelTitle">ГАРАЖ</div>
+    <button class="close" onclick="closePanels()">×</button>
+  </div>
+
+  <div class="droneGrid">
+
+    <div class="droneCard">
+      <div class="droneVisual">🚁</div>
+      <h3>SCOUT-01</h3>
+
+      <div class="stat">
+        Скорость
+        <div class="statLine"><i style="width:55%"></i></div>
+      </div>
+
+      <div class="stat">
+        Манёвренность
+        <div class="statLine"><i style="width:70%"></i></div>
+      </div>
+
+      <div class="stat">
+        Батарея
+        <div class="statLine"><i style="width:60%"></i></div>
+      </div>
+
+      <button class="buy" onclick="selectDrone(0)">
+        ВЫБРАН
+      </button>
+    </div>
+
+    <div class="droneCard">
+      <div class="droneVisual">🛸</div>
+      <h3>RAPTOR-X</h3>
+
+      <div class="stat">
+        Скорость
+        <div class="statLine"><i style="width:85%"></i></div>
+      </div>
+
+      <div class="stat">
+        Манёвренность
+        <div class="statLine"><i style="width:90%"></i></div>
+      </div>
+
+      <div class="stat">
+        Батарея
+        <div class="statLine"><i style="width:45%"></i></div>
+      </div>
+
+      <button class="buy" onclick="buyDrone(1,6000)">
+        КУПИТЬ — 6000
+      </button>
+    </div>
+
+    <div class="droneCard">
+      <div class="droneVisual">◈</div>
+      <h3>PHANTOM-V</h3>
+
+      <div class="stat">
+        Скорость
+        <div class="statLine"><i style="width:95%"></i></div>
+      </div>
+
+      <div class="stat">
+        Манёвренность
+        <div class="statLine"><i style="width:78%"></i></div>
+      </div>
+
+      <div class="stat">
+        Батарея
+        <div class="statLine"><i style="width:80%"></i></div>
+      </div>
+
+      <button class="buy" onclick="buyDrone(2,12000)">
+        КУПИТЬ — 12000
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= SETTINGS ================= -->
+
+<div id="settings" class="panel hidden">
+
+  <div class="panelHeader">
+    <div class="panelTitle">НАСТРОЙКИ</div>
+    <button class="close" onclick="closePanels()">×</button>
+  </div>
+
+  <div class="droneCard" style="max-width:600px">
+
+    <h3>УПРАВЛЕНИЕ</h3>
+
+    <p style="margin:20px 0;color:#82909a">
+      WASD — движение<br>
+      SPACE — подъём<br>
+      CTRL — снижение<br>
+      SHIFT — ускорение<br>
+      Мышь — направление камеры<br>
+      ESC — пауза
+    </p>
+
+    <button class="buy" onclick="resetProgress()">
+      СБРОСИТЬ ПРОГРЕСС
+    </button>
+
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+
+<div id="gameUI" class="hidden">
+
+  <div class="topHUD">
+
+    <div class="hudBox">
+      <div class="hudLabel">ALTITUDE</div>
+      <div class="hudValue">
+        <span id="altitude">20</span> M
+      </div>
+    </div>
+
+    <div class="hudBox rightHUD">
+      <div class="hudLabel">MISSION</div>
+      <div class="hudValue">
+        <span id="targetCount">0</span> / <span id="targetTotal">5</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mission">
+    <div class="missionTitle">CURRENT OBJECTIVE</div>
+    <div class="missionText" id="missionText">
+      Найдите отмеченные цели
+    </div>
+  </div>
+
+  <div class="centerHUD">
+    <div class="crossRing"></div>
+    <div class="crosshair"></div>
+  </div>
+
+  <div id="warning">
+    ⚠ ПРЕПЯТСТВИЕ
+  </div>
+
+  <div class="bottomHUD">
+
+    <div class="barBox">
+
+      <div class="barName">
+        <span>BATTERY</span>
+        <span id="batteryText">100%</span>
+      </div>
+
+      <div class="bar" id="batteryBar">
+        <i id="batteryFill"></i>
+      </div>
+
+      <br>
+
+      <div class="barName">
+        <span>HULL</span>
+        <span id="hullText">100%</span>
+      </div>
+
+      <div class="bar" id="hullBar">
+        <i id="hullFill"></i>
+      </div>
+
+      <br>
+
+      <div class="barName">
+        <span>HEAT</span>
+        <span id="heatText">0%</span>
+      </div>
+
+      <div class="bar" id="heatBar">
+        <i id="heatFill"></i>
+      </div>
+
+    </div>
+
+    <div class="speed">
+      <strong id="speed">0</strong>
+      <small>KM/H</small>
+    </div>
+
+  </div>
+
+  <button id="exitBtn" onclick="leaveGame()">EXIT</button>
+
+  <div class="mobileControls">
+
+    <div class="stick left" id="leftStick">
+      <div class="knob" id="leftKnob"></div>
+    </div>
+
+    <div class="stick right" id="rightStick">
+      <div class="knob" id="rightKnob"></div>
+    </div>
+
+    <button class="mobileButton" id="boostBtn">
+      BOOST
+    </button>
+
+    <button class="mobileButton" id="actionBtn">
+      ACT
+    </button>
+
+  </div>
+
+</div>
+
+<div id="damage"></div>
+<div id="hitFlash"></div>
+
+<div id="pause" class="hidden">
+
+  <h2>ПАУЗА</h2>
+
+  <button class="btn primary" onclick="resumeGame()">
+    ПРОДОЛЖИТЬ
+  </button>
+
+  <button class="btn" onclick="leaveGame()">
+    В МЕНЮ
+  </button>
+
+</div>
+
+<!-- ================= THREE.JS ================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+/* =========================================================
+   FPV STRIKE
+   3D DRONE GAME
+========================================================= */
+
+/* ================= SAVE ================= */
+
+const SAVE_KEY = "fpv_strike_save_v1";
+
+let save = JSON.parse(
+  localStorage.getItem(SAVE_KEY) || "null"
+) || {
+  money:2500,
+  level:1,
+  xp:0,
+  selectedDrone:0,
+  owned:[0],
+  missions:0
+};
+
+function saveGame(){
+  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
+  updateMenu();
+}
+
+function updateMenu(){
+  document.getElementById("menuMoney").textContent =
+    Math.floor(save.money);
+
+  document.getElementById("menuLevel").textContent =
+    save.level;
+}
+
+updateMenu();
+
+/* ================= THREE ================= */
+
+let scene;
+let camera;
+let renderer;
+let clock;
+
+let drone;
+let droneBody;
+
+let targets=[];
+let obstacles=[];
+let buildings=[];
+let trees=[];
+
+let running=false;
+let paused=false;
+
+let velocity=new THREE.Vector3();
+let rotationVelocity=new THREE.Vector3();
+
+let input={
+  forward:0,
+  backward:0,
+  left:0,
+  right:0,
+  up:0,
+  down:0,
+  boost:false,
+  action:false,
+  mouseX:0,
+  mouseY:0
+};
+
+let stats={
+  battery:100,
+  hull:100,
+  heat:0,
+  speed:0,
+  altitude:20,
+  score:0,
+  targets:0
+};
+
+let droneStats=[
+  {
+    speed:42,
+    acceleration:28,
+    agility:1,
+    battery:100,
+    armor:100
+  },
+  {
+    speed:58,
+    acceleration:38,
+    agility:1.3,
+    battery:75,
+    armor:85
+  },
+  {
+    speed:72,
+    acceleration:48,
+    agility:1.5,
+    battery:110,
+    armor:100
+  }
+];
+
+/* ================= INIT ================= */
+
+function init3D(){
+
+  scene=new THREE.Scene();
+
+  scene.background=new THREE.Color(0x071018);
+
+  scene.fog=new THREE.FogExp2(
+    0x071018,
+    .006
+  );
+
+  camera=new THREE.PerspectiveCamera(
+    75,
+    innerWidth/innerHeight,
+    .05,
+    2000
+  );
+
+  camera.position.set(
+    0,20,0
+  );
+
+  renderer=new THREE.WebGLRenderer({
+    antialias:true,
+    powerPreference:"high-performance"
+  });
+
+  renderer.setPixelRatio(
+    Math.min(devicePixelRatio,2)
+  );
+
+  renderer.setSize(
+    innerWidth,
+    innerHeight
+  );
+
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=
+    THREE.PCFSoftShadowMap;
+
+  document.body.insertBefore(
+    renderer.domElement,
+    document.body.firstChild
+  );
+
+  clock=new THREE.Clock();
+
+  createWorld();
+  createDrone();
+  createLights();
+
+  window.addEventListener(
+    "resize",
+    resize
+  );
+
+  animate();
+}
+
+/* ================= LIGHT ================= */
+
+function createLights(){
+
+  const hemi=
+    new THREE.HemisphereLight(
+      0x9bdcff,
+      0x101820,
+      1.6
+    );
+
+  scene.add(hemi);
+
+  const sun=
+    new THREE.DirectionalLight(
+      0xffffff,
+      2
+    );
+
+  sun.position.set(
+    100,
+    180,
+    80
+  );
+
+  sun.castShadow=true;
+
+  sun.shadow.mapSize.width=2048;
+  sun.shadow.mapSize.height=2048;
+
+  sun.shadow.camera.left=-300;
+  sun.shadow.camera.right=300;
+  sun.shadow.camera.top=300;
+  sun.shadow.camera.bottom=-300;
+
+  scene.add(sun);
+}
+
+/* ================= WORLD ================= */
+
+function createWorld(){
+
+  const groundGeo=
+    new THREE.PlaneGeometry(
+      1600,
+      1600
+    );
+
+  const groundMat=
+    new THREE.MeshStandardMaterial({
+      color:0x16221d,
+      roughness:1
+    });
+
+  const ground=
+    new THREE.Mesh(
+      groundGeo,
+      groundMat
+    );
+
+  ground.rotation.x=-Math.PI/2;
+  ground.receiveShadow=true;
+
+  scene.add(ground);
+
+  createRoads();
+  createBuildings();
+  createForest();
+  createObstacles();
+  createTargets();
+
+  createSky();
+}
+
+/* ================= SKY ================= */
+
+function createSky(){
+
+  const skyGeo=
+    new THREE.SphereGeometry(
+      900,
+      32,
+      16
+    );
+
+  const skyMat=
+    new THREE.MeshBasicMaterial({
+      color:0x08131c,
+      side:THREE.BackSide
+    });
+
+  const sky=
+    new THREE.Mesh(
+      skyGeo,
+      skyMat
+    );
+
+  scene.add(sky);
+}
+
+/* ================= ROADS ================= */
+
+function createRoads(){
+
+  for(let i=-600;i<=600;i+=120){
+
+    const geo=
+      new THREE.BoxGeometry(
+        28,
+        .15,
+        1200
+      );
+
+    const mat=
+      new THREE.MeshStandardMaterial({
+        color:0x15191c,
+        roughness:.9
+      });
+
+    const road=
+      new THREE.Mesh(
+        geo,
+        mat
+      );
+
+    road.position.set(
+      i,
+      .05,
+      0
+    );
+
+    road.receiveShadow=true;
+
+    scene.add(road);
+  }
+
+  for(let i=-600;i<=600;i+=120){
+
+    const geo=
+      new THREE.BoxGeometry(
+        1200,
+        .15,
+        28
+      );
+
+    const mat=
+      new THREE.MeshStandardMaterial({
+        color:0x15191c
+      });
+
+    const road=
+      new THREE.Mesh(
+        geo,
+        mat
+      );
+
+    road.position.set(
+      0,
+      .06,
+      i
+    );
+
+    scene.add(road);
+  }
+}
+
+/* ================= BUILDINGS ================= */
+
+function createBuildings(){
+
+  for(let x=-560;x<=560;x+=70){
+
+    for(let z=-560;z<=560;z+=70){
+
+      if(
+        Math.abs(x%120)<20 ||
+        Math.abs(z%120)<20
+      ) continue;
+
+      if(Math.random()<.48){
+
+        const w=
+          25+Math.random()*28;
+
+        const d=
+          25+Math.random()*28;
+
+        const h=
+          10+Math.random()*55;
+
+        const geo=
+          new THREE.BoxGeometry(
+            w,h,d
+          );
+
+        const mat=
+          new THREE.MeshStandardMaterial({
+            color:
+              new THREE.Color(
+                .08+Math.random()*.05,
+                .11+Math.random()*.05,
+                .14+Math.random()*.06
+              ),
+            roughness:.85
+          });
+
+        const building=
+          new THREE.Mesh(
+            geo,
+            mat
+          );
+
+        building.position.set(
+          x+(Math.random()*15-7),
+          h/2,
+          z+(Math.random()*15-7)
+        );
+
+        building.castShadow=true;
+        building.receiveShadow=true;
+
+        scene.add(building);
+        buildings.push(building);
+
+        addWindows(
+          building,
+          w,
+          h,
+          d
+        );
+      }
+    }
+  }
+}
+
+/* ================= WINDOWS ================= */
+
+function addWindows(
+  building,
+  w,
+  h,
+  d
+){
+
+  const countX=
+    Math.max(
+      2,
+      Math.floor(w/7)
+    );
+
+  const countY=
+    Math.max(
+      2,
+      Math.floor(h/8)
+    );
+
+  const mat=
+    new THREE.MeshBasicMaterial({
+      color:0x3fdcff
+    });
+
+  for(
+    let x=0;
+    x<countX;
+    x++
+  ){
+
+    for(
+      let y=1;
+      y<countY;
+      y++
+    ){
+
+      if(Math.random()<.35)
+        continue;
+
+      const win=
+        new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            2.4,
+            3
+          ),
+          mat
+        );
+
+      win.position.set(
+        building.position.x-w/2+
+        4+x*6,
+        y*7,
+        building.position.z-d/2-.03
+      );
+
+      scene.add(win);
+    }
+  }
+}
+
+/* ================= FOREST ================= */
+
+function createForest(){
+
+  for(
+    let i=0;
+    i<220;
+    i++
+  ){
+
+    const x=
+      Math.random()*1400-700;
+
+    const z=
+      Math.random()*1400-700;
+
+    if(
+      Math.abs(x%120)<25 ||
+      Math.abs(z%120)<25
+    ) continue;
+
+    createTree(
+      x,
+      z
+    );
+  }
+}
+
+function createTree(x,z){
+
+  const group=
+    new THREE.Group();
+
+  const trunk=
+    new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        .6,
+        .8,
+        7,
+        8
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x3c2719
+      })
+    );
+
+  trunk.position.y=3.5;
+
+  trunk.castShadow=true;
+
+  group.add(trunk);
+
+  const leaves=
+    new THREE.Mesh(
+      new THREE.ConeGeometry(
+        4,
+        12,
+        8
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x173b25
+      })
+    );
+
+  leaves.position.y=10;
+
+  leaves.castShadow=true;
+
+  group.add(leaves);
+
+  group.position.set(
+    x,0,z
+  );
+
+  scene.add(group);
+
+  trees.push(group);
+}
+
+/* ================= OBSTACLES ================= */
+
+function createObstacles(){
+
+  for(let i=0;i<35;i++){
+
+    const geo=
+      new THREE.BoxGeometry(
+        4,
+        3,
+        4
+      );
+
+    const mat=
+      new THREE.MeshStandardMaterial({
+        color:0x3b4650
+      });
+
+    const o=
+      new THREE.Mesh(
+        geo,
+        mat
+      );
+
+    o.position.set(
+      Math.random()*1000-500,
+      1.5,
+      Math.random()*1000-500
+    );
+
+    o.castShadow=true;
+
+    scene.add(o);
+    obstacles.push(o);
+  }
+}
+
+/* ================= TARGETS ================= */
+
+function createTargets(){
+
+  targets.forEach(
+    t=>scene.remove(t.group)
+  );
+
+  targets=[];
+
+  for(let i=0;i<5;i++){
+
+    const group=
+      new THREE.Group();
+
+    const body=
+      new THREE.Mesh(
+        new THREE.BoxGeometry(
+          9,
+          5,
+          7
+        ),
+        new THREE.MeshStandardMaterial({
+          color:0x743b35,
+          roughness:.8
+        })
+      );
+
+    body.castShadow=true;
+
+    group.add(body);
+
+    const ring=
+      new THREE.Mesh(
+        new THREE.TorusGeometry(
+          8,
+          .15,
+          8,
+          32
+        ),
+        new THREE.MeshBasicMaterial({
+          color:0xff3434
+        })
+      );
+
+    ring.rotation.x=Math.PI/2;
+
+    group.add(ring);
+
+    const x=
+      Math.random()*700-350;
+
+    const z=
+      Math.random()*700-350;
+
+    group.position.set(
+      x,
+      4,
+      z
+    );
+
+    scene.add(group);
+
+    targets.push({
+      group,
+      active:true,
+      radius:12
+    });
+  }
+
+  stats.targets=0;
+
+  document.getElementById(
+    "targetTotal"
+  ).textContent=targets.length;
+
+  document.getElementById(
+    "targetCount"
+  ).textContent=0;
+}
+
+/* ================= DRONE ================= */
+
+function createDrone(){
+
+  drone=
+    new THREE.Group();
+
+  droneBody=
+    new THREE.Group();
+
+  drone.add(droneBody);
+
+  const body=
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        1.8,
+        .45,
+        3
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x1b242c,
+        metalness:.6,
+        roughness:.3
+      })
+    );
+
+  body.castShadow=true;
+
+  droneBody.add(body);
+
+  const nose=
+    new THREE.Mesh(
+      new THREE.ConeGeometry(
+        .7,
+        1.7,
+        4
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x263640,
+        metalness:.5
+      })
+    );
+
+  nose.rotation.x=-Math.PI/2;
+  nose.position.z=-2;
+
+  droneBody.add(nose);
+
+  createRotor(
+    -.95,
+    0,
+    -1.15
+  );
+
+  createRotor(
+    .95,
+    0,
+    -1.15
+  );
+
+  createRotor(
+    -.95,
+    0,
+    1.15
+  );
+
+  createRotor(
+    .95,
+    0,
+    1.15
+  );
+
+  const light=
+    new THREE.PointLight(
+      0x00ddff,
+      2,
+      12
+    );
+
+  light.position.set(
+    0,
+    .1,
+    -2
+  );
+
+  drone.add(light);
+
+  scene.add(drone);
+
+  drone.position.set(
+    0,
+    20,
+    200
+  );
+}
+
+function createRotor(x,y,z){
+
+  const arm=
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        2.5,
+        .15,
+        .15
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x303b44
+      })
+    );
+
+  arm.position.set(
+    x*.5,
+    y,
+    z
+  );
+
+  droneBody.add(arm);
+
+  const rotor=
+    new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        .65,
+        .65,
+        .08,
+        24
+      ),
+      new THREE.MeshStandardMaterial({
+        color:0x111519
+      })
+    );
+
+  rotor.rotation.x=Math.PI/2;
+
+  rotor.position.set(
+    x,
+    y,
+    z
+  );
+
+  rotor.userData.rotor=true;
+
+  droneBody.add(rotor);
+}
+
+/* ================= INPUT ================= */
+
+const keys={};
+
+window.addEventListener(
+  "keydown",
+  e=>{
+    keys[e.code]=true;
+
+    if(e.code==="Escape"){
+      if(running){
+        if(paused) resumeGame();
+        else pauseGame();
+      }
+    }
+
+    if(e.code==="Space")
+      input.action=true;
+  }
+);
+
+window.addEventListener(
+  "keyup",
+  e=>{
+    keys[e.code]=false;
+
+    if(e.code==="Space")
+      input.action=false;
+  }
+);
+
+document.addEventListener(
+  "mousemove",
+  e=>{
+    if(!running || paused)
+      return;
+
+    input.mouseX += e.movementX*.002;
+    input.mouseY += e.movementY*.002;
+  }
+);
+
+/* ================= TOUCH ================= */
+
+function setupStick(
+  element,
+  knob,
+  callback
+){
+
+  let active=false;
+
+  const update=e=>{
+
+    const rect=
+      element.getBoundingClientRect();
+
+    const cx=
+      rect.left+rect.width/2;
+
+    const cy=
+      rect.top+rect.height/2;
+
+    let x=e.clientX-cx;
+    let y=e.clientY-cy;
+
+    const max=
+      rect.width/2-28;
+
+    const len=
+      Math.sqrt(x*x+y*y);
+
+    if(len>max){
+      x=x/len*max;
+      y=y/len*max;
+    }
+
+    knob.style.transform=
+      `translate(calc(-50% + ${x}px),calc(-50% + ${y}px))`;
+
+    callback(
+      x/max,
+      y/max
+    );
+  };
+
+  element.addEventListener(
+    "pointerdown",
+    e=>{
+      active=true;
+      element.setPointerCapture(e.pointerId);
+      update(e);
+    }
+  );
+
+  element.addEventListener(
+    "pointermove",
+    e=>{
+      if(active)
+        update(e);
+    }
+  );
+
+  element.addEventListener(
+    "pointerup",
+    ()=>{
+      active=false;
+
+      knob.style.transform=
+        "translate(-50%,-50%)";
+
+      callback(0,0);
+    }
+  );
+}
+
+setupStick(
+  document.getElementById("leftStick"),
+  document.getElementById("leftKnob"),
+  (x,y)=>{
+    input.left=Math.max(0,-x);
+    input.right=Math.max(0,x);
+
+    input.forward=Math.max(0,-y);
+    input.backward=Math.max(0,y);
+  }
+);
+
+setupStick(
+  document.getElementById("rightStick"),
+  document.getElementById("rightKnob"),
+  (x,y)=>{
+    input.mouseX=x*.04;
+    input.mouseY=y*.03;
+  }
+);
+
+const boostBtn=
+  document.getElementById(
+    "boostBtn"
+  );
+
+boostBtn.addEventListener(
+  "pointerdown",
+  ()=>{
+    input.boost=true;
+  }
+);
+
+boostBtn.addEventListener(
+  "pointerup",
+  ()=>{
+    input.boost=false;
+  }
+);
+
+const actionBtn=
+  document.getElementById(
+    "actionBtn"
+  );
+
+actionBtn.addEventListener(
+  "pointerdown",
+  ()=>{
+    input.action=true;
+  }
+);
+
+actionBtn.addEventListener(
+  "pointerup",
+  ()=>{
+    input.action=false;
+  }
+);
+
+/* ================= CONTROL ================= */
+
+function readKeyboard(){
+
+  input.forward=
+    keys["KeyW"]?1:0;
+
+  input.backward=
+    keys["KeyS"]?1:0;
+
+  input.left=
+    keys["KeyA"]?1:0;
+
+  input.right=
+    keys["KeyD"]?1:0;
+
+  input.up=
+    keys["Space"]?1:0;
+
+  input.down=
+    keys["ControlLeft"] ||
+    keys["ControlRight"] ?1:0;
+
+  input.boost=
+    keys["ShiftLeft"] ||
+    keys["ShiftRight"];
+}
+
+/* ================= GAME START ================= */
+
+function startGame(){
+
+  closePanels();
+
+  document.getElementById(
+    "menu"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "gameUI"
+  ).classList.remove("hidden");
+
+  running=true;
+  paused=false;
+
+  stats={
+    battery:droneStats[
+      save.selectedDrone
+    ].battery,
+
+    hull:droneStats[
+      save.selectedDrone
+    ].armor,
+
+    heat:0,
+    speed:0,
+    altitude:20,
+    score:0,
+    targets:0
+  };
+
+  velocity.set(0,0,0);
+
+  drone.position.set(
+    0,
+    20,
+    250
+  );
+
+  drone.rotation.set(
+    0,
+    0,
+    0
+  );
+
+  camera.position.set(
+    0,
+    20,
+    250
+  );
+
+  input.mouseX=0;
+  input.mouseY=0;
+
+  createTargets();
+
+  document.getElementById(
+    "missionText"
+  ).textContent=
+    "Найдите отмеченные цели";
+
+  renderer.domElement.requestPointerLock?.();
+}
+
+/* ================= PAUSE ================= */
+
+function pauseGame(){
+
+  paused=true;
+
+  document.getElementById(
+    "pause"
+  ).classList.remove("hidden");
+
+  document.exitPointerLock?.();
+}
+
+function resumeGame(){
+
+  paused=false;
+
+  document.getElementById(
+    "pause"
+  ).classList.add("hidden");
+
+  renderer.domElement.requestPointerLock?.();
+}
+
+/* ================= LEAVE ================= */
+
+function leaveGame(){
+
+  running=false;
+  paused=false;
+
+  document.getElementById(
+    "gameUI"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "pause"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "menu"
+  ).classList.remove("hidden");
+
+  document.exitPointerLock?.();
+
+  saveGame();
+}
+
+/* ================= PHYSICS ================= */
+
+function updateFlight(dt){
+
+  readKeyboard();
+
+  const ds=
+    droneStats[
+      save.selectedDrone
+    ];
+
+  const forward=
+    input.forward-
+    input.backward;
+
+  const side=
+    input.right-
+    input.left;
+
+  const vertical=
+    input.up-
+    input.down;
+
+  const boost=
+    input.boost &&
+    stats.battery>5;
+
+  let maxSpeed=
+    ds.speed;
+
+  if(boost)
+    maxSpeed*=1.5;
+
+  const localForward=
+    new THREE.Vector3(
+      0,
+      0,
+      -1
+    );
+
+  localForward.applyQuaternion(
+    drone.quaternion
+  );
+
+  const localRight=
+    new THREE.Vector3(
+      1,
+      0,
+      0
+    );
+
+  localRight.applyQuaternion(
+    drone.quaternion
+  );
+
+  const worldUp=
+    new THREE.Vector3(
+      0,
+      1,
+      0
+    );
+
+  const desired=
+    new THREE.Vector3();
+
+  desired.addScaledVector(
+    localForward,
+    forward*ds.acceleration
+  );
+
+  desired.addScaledVector(
+    localRight,
+    side*ds.acceleration*.7
+  );
+
+  desired.addScaledVector(
+    worldUp,
+    vertical*ds.acceleration*.8
+  );
+
+  if(
+    drone.position.y<4 &&
+    vertical<=0
+  ){
+    desired.y+=25;
+  }
+
+  velocity.lerp(
+    desired,
+    Math.min(1,dt*2.5)
+  );
+
+  if(
+    velocity.length()>
+    maxSpeed
+  ){
+
+    velocity.setLength(
+      maxSpeed
+    );
+  }
+
+  drone.position.addScaledVector(
+    velocity,
+    dt
+  );
+
+  drone.position.y=
+    Math.max(
+      2,
+      Math.min(
+        280,
+        drone.position.y
+      )
+    );
+
+  stats.speed=
+    velocity.length()*3.6;
+
+  stats.altitude=
+    drone.position.y;
+
+  if(boost){
+
+    stats.battery-=
+      dt*5;
+
+    stats.heat+=
+      dt*14;
+
+  }else{
+
+    stats.battery-=
+      dt*.8;
+
+    stats.heat-=
+      dt*9;
+  }
+
+  stats.battery=
+    Math.max(
+      0,
+      stats.battery
+    );
+
+  stats.heat=
+    Math.max(
+      0,
+      stats.heat
+    );
+
+  if(stats.heat>100){
+
+    velocity.multiplyScalar(.7);
+
+    stats.hull-=dt*3;
+
+    flashWarning();
+  }
+
+  /* roll */
+
+  const targetRoll=
+    -side*.35;
+
+  drone.rotation.z+=
+    (
+      targetRoll-
+      drone.rotation.z
+    )*dt*5;
+
+  /* pitch */
+
+  const targetPitch=
+    forward*.25;
+
+  drone.rotation.x+=
+    (
+      targetPitch-
+      drone.rotation.x
+    )*dt*5;
+
+  /* yaw */
+
+  const yaw=
+    input.mouseX;
+
+  drone.rotation.y+=
+    yaw*dt*4;
+
+  input.mouseX*=.88;
+
+  /* camera look */
+
+  camera.rotation.order=
+    "YXZ";
+
+  camera.rotation.y=
+    drone.rotation.y;
+
+  camera.rotation.x=
+    THREE.MathUtils.clamp(
+      input.mouseY,
+      -.8,
+      .8
+    );
+
+  input.mouseY*=.90;
+}
+
+/* ================= COLLISION ================= */
+
+function updateCollision(){
+
+  const dronePos=
+    drone.position;
+
+  for(
+    const b of buildings
+  ){
+
+    const box=
+      new THREE.Box3()
+        .setFromObject(b);
+
+    box.expandByScalar(1.5);
+
+    if(
+      box.containsPoint(
+        dronePos
+      )
+    ){
+
+      const speed=
+        velocity.length();
+
+      stats.hull-=
+        Math.max(
+          2,
+          speed*.45
+        );
+
+      velocity.multiplyScalar(
+        -.35
+      );
+
+      drone.position.y+=3;
+
+      flashDamage();
+
+      flashWarning();
+    }
+  }
+
+  for(
+    const o of obstacles
+  ){
+
+    const distance=
+      dronePos.distanceTo(
+        o.position
+      );
+
+    if(distance<5){
+
+      stats.hull-=2;
+
+      velocity.multiplyScalar(
+        .75
+      );
+
+      flashDamage();
+    }
+  }
+}
+
+/* ================= TARGET ACTION ================= */
+
+let actionCooldown=0;
+
+function updateTargets(dt){
+
+  actionCooldown-=dt;
+
+  for(
+    const t of targets
+  ){
+
+    if(!t.active)
+      continue;
+
+    const distance=
+      drone.position.distanceTo(
+        t.group.position
+      );
+
+    const ring=
+      t.group.children[1];
+
+    ring.rotation.z+=
+      dt*2;
+
+    ring.scale.setScalar(
+      1+
+      Math.sin(
+        performance.now()*.005
+      )*.08
+    );
+
+    if(
+      distance<
+      t.radius &&
+      input.action &&
+      actionCooldown<=0
+    ){
+
+      actionCooldown=1;
+
+      destroyTarget(t);
+    }
+  }
+
+  if(
+    stats.targets>=
+    targets.length
+  ){
+
+    missionComplete();
+  }
+}
+
+function destroyTarget(t){
+
+  t.active=false;
+
+  const pos=
+    t.group.position.clone();
+
+  createExplosion(pos);
+
+  t.group.visible=false;
+
+  stats.targets++;
+
+  stats.score+=
+    1000;
+
+  document.getElementById(
+    "targetCount"
+  ).textContent=
+    stats.targets;
+
+  document.getElementById(
+    "missionText"
+  ).textContent=
+    "Цель уничтожена. Следующая цель.";
+
+  flashDamage();
+}
+
+/* ================= EXPLOSION ================= */
+
+function createExplosion(position){
+
+  const group=
+    new THREE.Group();
+
+  group.position.copy(
+    position
+  );
+
+  const sphere=
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        1,
+        16,
+        16
+      ),
+      new THREE.MeshBasicMaterial({
+        color:0xff8a00,
+        transparent:true,
+        opacity:.8
+      })
+    );
+
+  group.add(sphere);
+
+  scene.add(group);
+
+  let life=0;
+
+  const animateExplosion=()=>{
+
+    life+=.04;
+
+    sphere.scale.setScalar(
+      1+life*20
+    );
+
+    sphere.material.opacity=
+      Math.max(
+        0,
+        .8-life
+      );
+
+    if(life<1){
+
+      requestAnimationFrame(
+        animateExplosion
+      );
+
+    }else{
+
+      scene.remove(group);
+    }
+  };
+
+  animateExplosion();
+
+  /* particles */
+
+  for(let i=0;i<30;i++){
+
+    const p=
+      new THREE.Mesh(
+        new THREE.BoxGeometry(
+          .25,
+          .25,
+          .25
+        ),
+        new THREE.MeshBasicMaterial({
+          color:
+            Math.random()>.5
+            ?0xff9d00
+            :0x777777
+        })
+      );
+
+    p.position.copy(position);
+
+    p.userData.vel=
+      new THREE.Vector3(
+        Math.random()*12-6,
+        Math.random()*12,
+        Math.random()*12-6
+      );
+
+    scene.add(p);
+
+    let life=0;
+
+    const tick=()=>{
+
+      life+=.025;
+
+      p.position.addScaledVector(
+        p.userData.vel,
+        .025
+      );
+
+      p.userData.vel.y-=.3;
+
+      p.scale.multiplyScalar(
+        .97
+      );
+
+      if(life<1)
+        requestAnimationFrame(tick);
+      else
+        scene.remove(p);
+    };
+
+    tick();
+  }
+}
+
+/* ================= MISSION ================= */
+
+function missionComplete(){
+
+  if(!running)
+    return;
+
+  running=false;
+
+  const reward=
+    1500+
+    save.level*300;
+
+  save.money+=reward;
+
+  save.xp+=50;
+
+  save.missions++;
+
+  if(
+    save.xp>=
+    save.level*100
+  ){
+
+    save.xp-=
+      save.level*100;
+
+    save.level++;
+
+    document.getElementById(
+      "missionText"
+    ).textContent=
+      "НОВЫЙ УРОВЕНЬ!";
+  }
+
+  saveGame();
+
+  setTimeout(()=>{
+
+    alert(
+      "МИССИЯ ВЫПОЛНЕНА!\n\n"+
+      "Награда: "+
+      reward+
+      " 💰\n"+
+      "Опыт: +50 ⭐"
+    );
+
+    leaveGame();
+
+  },500);
+}
+
+/* ================= UI ================= */
+
+function updateHUD(){
+
+  document.getElementById(
+    "altitude"
+  ).textContent=
+    Math.round(
+      stats.altitude
+    );
+
+  document.getElementById(
+    "speed"
+  ).textContent=
+    Math.round(
+      stats.speed
+    );
+
+  document.getElementById(
+    "batteryText"
+  ).textContent=
+    Math.round(
+      stats.battery
+    )+"%";
+
+  document.getElementById(
+    "hullText"
+  ).textContent=
+    Math.max(
+      0,
+      Math.round(stats.hull)
+    )+"%";
+
+  document.getElementById(
+    "heatText"
+  ).textContent=
+    Math.round(
+      stats.heat
+    )+"%";
+
+  document.getElementById(
+    "batteryFill"
+  ).style.width=
+    Math.max(
+      0,
+      stats.battery
+    )+"%";
+
+  document.getElementById(
+    "hullFill"
+  ).style.width=
+    Math.max(
+      0,
+      stats.hull
+    )+"%";
+
+  document.getElementById(
+    "heatFill"
+  ).style.width=
+    Math.min(
+      100,
+      stats.heat
+    )+"%";
+
+  setBarState(
+    "batteryBar",
+    stats.battery
+  );
+
+  setBarState(
+    "hullBar",
+    stats.hull
+  );
+
+  setBarState(
+    "heatBar",
+    stats.heat,
+    true
+  );
+}
+
+function setBarState(
+  id,
+  value,
+  inverse=false
+){
+
+  const el=
+    document.getElementById(id);
+
+  el.classList.remove(
+    "warning",
+    "danger"
+  );
+
+  if(inverse){
+
+    if(value>70)
+      el.classList.add("danger");
+
+    else if(value>50)
+      el.classList.add("warning");
+
+  }else{
+
+    if(value<20)
+      el.classList.add("danger");
+
+    else if(value<45)
+      el.classList.add("warning");
+  }
+}
+
+/* ================= DAMAGE ================= */
+
+function flashDamage(){
+
+  const el=
+    document.getElementById(
+      "hitFlash"
+    );
+
+  el.style.opacity=.25;
+
+  setTimeout(()=>{
+    el.style.opacity=0;
+  },80);
+
+  document.getElementById(
+    "damage"
+  ).style.opacity=.35;
+
+  setTimeout(()=>{
+    document.getElementById(
+      "damage"
+    ).style.opacity=0;
+  },150);
+}
+
+function flashWarning(){
+
+  const el=
+    document.getElementById(
+      "warning"
+    );
+
+  el.style.opacity=1;
+
+  setTimeout(()=>{
+    el.style.opacity=0;
+  },400);
+}
+
+/* ================= CAMERA ================= */
+
+function updateCamera(dt){
+
+  const target=
+    drone.position.clone();
+
+  const offset=
+    new THREE.Vector3(
+      0,
+      .15,
+      -.1
+    );
+
+  offset.applyQuaternion(
+    drone.quaternion
+  );
+
+  target.add(offset);
+
+  camera.position.lerp(
+    target,
+    Math.min(
+      1,
+      dt*15
+    )
+  );
+
+  camera.quaternion.slerp(
+    drone.quaternion,
+    Math.min(
+      1,
+      dt*10
+    )
+  );
+
+  camera.rotation.order=
+    "YXZ";
+
+  camera.rotation.y=
+    drone.rotation.y;
+
+  camera.rotation.x=
+    THREE.MathUtils.clamp(
+      input.mouseY,
+      -.8,
+      .8
+    );
+
+  /* camera shake */
+
+  if(
+    stats.speed>45
+  ){
+
+    const shake=
+      (stats.speed-45)/
+      200;
+
+    camera.position.x+=
+      (Math.random()-.5)*
+      shake;
+
+    camera.position.y+=
+      (Math.random()-.5)*
+      shake;
+  }
+}
+
+/* ================= ROTORS ================= */
+
+function updateRotors(dt){
+
+  droneBody.children.forEach(
+    child=>{
+
+      if(
+        child.userData &&
+        child.userData.rotor
+      ){
+
+        child.rotation.z+=
+          dt*
+          (stats.speed+20)*
+          .8;
+      }
+    }
+  );
+}
+
+/* ================= GAME OVER ================= */
+
+function checkGameOver(){
+
+  if(stats.hull<=0){
+
+    running=false;
+
+    createExplosion(
+      drone.position
+    );
+
+    setTimeout(()=>{
+
+      alert(
+        "ДРОН ПОТЕРЯН\n\n"+
+        "Очки: "+
+        stats.score
+      );
+
+      leaveGame();
+
+    },600);
+
+    return;
+  }
+
+  if(stats.battery<=0){
+
+    velocity.multiplyScalar(.94);
+
+    document.getElementById(
+      "missionText"
+    ).textContent=
+      "Батарея разряжена!";
+  }
+}
+
+/* ================= ANIMATE ================= */
+
+function animate(){
+
+  requestAnimationFrame(
+    animate
+  );
+
+  const dt=
+    Math.min(
+      .033,
+      clock.getDelta()
+    );
+
+  if(
+    running &&
+    !paused
+  ){
+
+    updateFlight(dt);
+    updateCollision();
+    updateTargets(dt);
+    updateCamera(dt);
+    updateRotors(dt);
+    updateHUD();
+    checkGameOver();
+  }
+
+  renderer.render(
+    scene,
+    camera
+  );
+}
+
+/* ================= PANELS ================= */
+
+function closePanels(){
+
+  document.getElementById(
+    "garage"
+  ).classList.add("hidden");
+
+  document.getElementById(
+    "settings"
+  ).classList.add("hidden");
+}
+
+function openGarage(){
+
+  document.getElementById(
+    "garage"
+  ).classList.remove("hidden");
+}
+
+function openSettings(){
+
+  document.getElementById(
+    "settings"
+  ).classList.remove("hidden");
+}
+
+/* ================= DRONES ================= */
+
+function selectDrone(id){
+
+  if(
+    !save.owned.includes(id)
+  ) return;
+
+  save.selectedDrone=id;
+  saveGame();
+
+  alert(
+    "Дрон выбран!"
+  );
+}
+
+function buyDrone(
+  id,
+  price
+){
+
+  if(
+    save.owned.includes(id)
+  ){
+
+    selectDrone(id);
+    return;
+  }
+
+  if(
+    save.money<price
+  ){
+
+    alert(
+      "Недостаточно денег."
+    );
+
+    return;
+  }
+
+  save.money-=price;
+
+  save.owned.push(id);
+  save.selectedDrone=id;
+
+  saveGame();
+
+  alert(
+    "Дрон приобретён!"
+  );
+}
+
+/* ================= RESET ================= */
+
+function resetProgress(){
+
+  if(
+    !confirm(
+      "Сбросить весь прогресс?"
+    )
+  ) return;
+
+  localStorage.removeItem(
+    SAVE_KEY
+  );
+
+  location.reload();
+}
+
+/* ================= RESIZE ================= */
+
+function resize(){
+
+  if(!renderer)
+    return;
+
+  camera.aspect=
+    innerWidth/
+    innerHeight;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    innerWidth,
+    innerHeight
+  );
+}
+
+/* ================= INIT ================= */
+
+init3D();
+
+/* =========================================================
+   EXTRA GAMEPLAY SYSTEMS
+========================================================= */
+
+/* velocity stabilization */
+
+setInterval(()=>{
+
+  if(
+    !running ||
+    paused
+  ) return;
+
+  const horizontal=
+    Math.sqrt(
+      velocity.x*velocity.x+
+      velocity.z*velocity.z
+    );
+
+  if(
+    horizontal<.2 &&
+    !input.forward &&
+    !input.backward
+  ){
+
+    velocity.x*=.96;
+    velocity.z*=.96;
+  }
+
+},50);
+
+/* target beacon animation */
+
+setInterval(()=>{
+
+  if(!running)
+    return;
+
+  targets.forEach(t=>{
+
+    if(!t.active)
+      return;
+
+    t.group.position.y=
+      4+
+      Math.sin(
+        performance.now()*.002+
+        t.group.position.x
+      )*.5;
+  });
+
+},40);
+
+/* altitude safety */
+
+setInterval(()=>{
+
+  if(
+    !running ||
+    paused
+  ) return;
+
+  if(
+    drone.position.y<3
+  ){
+
+    stats.hull-=1;
+
+    flashWarning();
+  }
+
+},100);
+
+/* =========================================================
+   ADDITIONAL DECORATION
+========================================================= */
+
+function createLandingPads(){
+
+  for(let i=0;i<8;i++){
+
+    const pad=
+      new THREE.Mesh(
+        new THREE.CylinderGeometry(
+          12,
+          12,
+          .3,
+          32
+        ),
+        new THREE.MeshStandardMaterial({
+          color:0x252d33,
+          roughness:.8
+        })
+      );
+
+    pad.position.set(
+      Math.random()*900-450,
+      .2,
+      Math.random()*900-450
+    );
+
+    scene.add(pad);
+  }
+}
+
+createLandingPads();
+
+/* =========================================================
+   DISTANT LIGHTS
+========================================================= */
+
+function createCityLights(){
+
+  const material=
+    new THREE.MeshBasicMaterial({
+      color:0x00aaff
+    });
+
+  for(let i=0;i<100;i++){
+
+    const light=
+      new THREE.Mesh(
+        new THREE.BoxGeometry(
+          .4,
+          .4,
+          .4
+        ),
+        material
+      );
+
+    light.position.set(
+      Math.random()*1200-600,
+      .5,
+      Math.random()*1200-600
+    );
+
+    scene.add(light);
+  }
+}
+
+createCityLights();
+
+/* =========================================================
+   EXTRA DRONE EFFECT
+========================================================= */
+
+function createDroneTrail(){
+
+  const trail=
+    new THREE.Line(
+      new THREE.BufferGeometry(),
+      new THREE.LineBasicMaterial({
+        color:0x00d9ff,
+        transparent:true,
+        opacity:.25
+      })
+    );
+
+  scene.add(trail);
+
+  setInterval(()=>{
+
+    if(
+      !drone ||
+      !running
+    ) return;
+
+    const points=[];
+
+    for(let i=0;i<12;i++){
+
+      points.push(
+        new THREE.Vector3(
+          drone.position.x-
+          velocity.x*i*.025,
+          drone.position.y-
+          velocity.y*i*.025,
+          drone.position.z-
+          velocity.z*i*.025
+        )
+      );
+    }
+
+    trail.geometry.dispose();
+
+    trail.geometry=
+      new THREE.BufferGeometry()
+        .setFromPoints(points);
+
+  },80);
+}
+
+createDroneTrail();
+
+/* =========================================================
+   MINI RADAR
+========================================================= */
+
+const radar=
+  document.createElement(
+    "div"
+  );
+
+radar.style.position=
+  "absolute";
+
+radar.style.right=
+  "20px";
+
+radar.style.bottom=
+  "20px";
+
+radar.style.width=
+  "130px";
+
+radar.style.height=
+  "130px";
+
+radar.style.border=
+  "1px solid rgba(0,217,255,.35)";
+
+radar.style.borderRadius=
+  "50%";
+
+radar.style.background=
+  "radial-gradient(circle,rgba(0,217,255,.08),rgba(0,0,0,.35))";
+
+radar.style.pointerEvents=
+  "none";
+
+document.getElementById(
+  "gameUI"
+).appendChild(
+  radar
+);
+
+const radarCenter=
+  document.createElement(
+    "div"
+  );
+
+radarCenter.style.position=
+  "absolute";
+
+radarCenter.style.left=
+  "50%";
+
+radarCenter.style.top=
+  "50%";
+
+radarCenter.style.width=
+  "5px";
+
+radarCenter.style.height=
+  "5px";
+
+radarCenter.style.borderRadius=
+  "50%";
+
+radarCenter.style.background=
+  "#00eaff";
+
+radar.appendChild(
+  radarCenter
+);
+
+setInterval(()=>{
+
+  radar.querySelectorAll(
+    ".radarTarget"
+  ).forEach(
+    x=>x.remove()
+  );
+
+  if(!running)
+    return;
+
+  targets.forEach(t=>{
+
+    if(!t.active)
+      return;
+
+    const dx=
+      t.group.position.x-
+      drone.position.x;
+
+    const dz=
+      t.group.position.z-
+      drone.position.z;
+
+    const scale=.07;
+
+    const dot=
+      document.createElement(
+        "div"
+      );
+
+    dot.className=
+      "radarTarget";
+
+    dot.style.position=
+      "absolute";
+
+    dot.style.width=
+      "7px";
+
+    dot.style.height=
+      "7px";
+
+    dot.style.borderRadius=
+      "50%";
+
+    dot.style.background=
+      "#ff4040";
+
+    dot.style.boxShadow=
+      "0 0 8px #ff4040";
+
+    let x=
+      65+
+      dx*scale;
+
+    let y=
+      65+
+      dz*scale;
+
+    x=Math.max(
+      8,
+      Math.min(
+        122,
+        x
+      )
+    );
+
+    y=Math.max(
+      8,
+      Math.min(
+        122,
+        y
+      )
+    );
+
+    dot.style.left=
+      x+"px";
+
+    dot.style.top=
+      y+"px";
+
+    radar.appendChild(
+      dot
+    );
+  });
+
+},100);
+
+/* =========================================================
+   GAME TIPS
+========================================================= */
+
+let tips=[
+  "Используйте высоту, чтобы видеть карту.",
+  "Ускорение расходует батарею быстрее.",
+  "Следите за перегревом.",
+  "Препятствия повреждают корпус.",
+  "Красные метки показывают активные цели.",
+  "На высокой скорости столкновения опаснее.",
+  "Каждая выполненная миссия приносит деньги и опыт."
+];
+
+let tipIndex=0;
+
+setInterval(()=>{
+
+  if(
+    !running ||
+    paused
+  ) return;
+
+  tipIndex=
+    (tipIndex+1)%
+    tips.length;
+
+},12000);
+
+/* =========================================================
+   PREVENT MOBILE SCROLL
+========================================================= */
+
+document.addEventListener(
+  "touchmove",
+  e=>{
+    if(running)
+      e.preventDefault();
+  },
+  {
+    passive:false
+  }
+);
+
+/* =========================================================
+   POINTER LOCK
+========================================================= */
+
+renderer.domElement.addEventListener(
+  "click",
+  ()=>{
+
+    if(
+      running &&
+      !paused
+    ){
+
+      renderer.domElement
+        .requestPointerLock?.();
+    }
+
+  }
+);
+
+document.addEventListener(
+  "pointerlockchange",
+  ()=>{
+    if(
+      document.pointerLockElement===
+      renderer.domElement
+    ){
+      // mouse control active
+    }
+  }
+);
+
+/* =========================================================
+   END
+========================================================= */
+</script>
+
+</body>
+</html>
